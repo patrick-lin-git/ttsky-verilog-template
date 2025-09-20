@@ -8,7 +8,7 @@ You can also include images in this folder and reference them in the markdown. E
 -->
 # Manchester Encode/Decode
 
-	### Author:       Patrick Lin
+	### Author:       Patrick Lin  (https://github.com/patrick-lin-git)
 	### Description:  Machester Encode/Decode
 	### Language:     Systemverilog
 
