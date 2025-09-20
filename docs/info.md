@@ -11,16 +11,16 @@ You can also include images in this folder and reference them in the markdown. E
 
 This chip perform machester encode or decode function that conver a paralle 8 bit of data to serial bit stream.
 Here below is the pin function:
-INPUT:
-  CLK100M:  100MHz Clock is needed when DIR pin is 0. if DIR is 1, keep this input low.
-  DIR:      Control data conversion direction, 1: Encode (TX) / 0: Decode (RX)
-  HALT:     Control Halt or normal, 1: STOP Paralle/Serial Conversion / 0: Normal Function, do auto convert repeatly
-  BIST:     1: Enter BIST Mode / 0: Normal Mode
-  RXD:      if DIR is 0, this should connect the counter part chip. Keep low if DIR is 1.
+  INPUT:
+    CLK100M:  100MHz Clock is needed when DIR pin is 0. if DIR is 1, keep this input low.
+    DIR:      Control data conversion direction, 1: Encode (TX) / 0: Decode (RX)
+    HALT:     Control Halt or normal, 1: STOP Paralle/Serial Conversion / 0: Normal Function, do auto convert repeatly
+    BIST:     1: Enter BIST Mode / 0: Normal Mode
+    RXD:      if DIR is 0, this should connect the counter part chip. Keep low if DIR is 1.
 
-OUTPUT:
-  DBGO[6:0]  Internal Debug Singal Output
-  TXD:      Valid when DIR is 1, Keep floating if DIR is 0.
+  OUTPUT:
+    DBGO[6:0]  Internal Debug Singal Output
+    TXD:      Valid when DIR is 1, Keep floating if DIR is 0.
   
 ## How to test
 
