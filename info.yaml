@@ -1,17 +1,17 @@
 # Tiny Tapeout project information
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
+  title:        "mcht_trx"      # Project title
+  author:       "patrick-lin-git"      # Your name
+  discord:      "patricklin9633"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
+  description:  "Manchester Encode/Decode"      # One line description of what your project does
+  language:     "System Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
+  clock_hz:     25       # Clock frequency in Hz (or 0 if not applicable)
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  tiles: "2x2"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
   # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  top_module:  "tt_um_sky130_patrick_lin_git"
 
   # List your project's source files here.
   # Source files must be in ./src and you must list each source file separately, one per line.
@@ -23,34 +23,34 @@ project:
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
   # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
+  ui[0]: "CLK25M"
+  ui[1]: "RST_N"
+  ui[2]: "DIR"
+  ui[3]: "ENB"
+  ui[4]: "DBG_SEL0"
+  ui[5]: "DBG_SEL1"
+  ui[6]: "DBG_SEL2"
+  ui[7]: "MCHT_RXD"
 
   # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
-  uo[6]: ""
-  uo[7]: ""
+  uo[0]: "DBG_OUT0"
+  uo[1]: "DBG_OUT1"
+  uo[2]: "DBG_OUT2"
+  uo[3]: "DBG_OUT3"
+  uo[4]: "DBG_OUT4"
+  uo[5]: "DBG_OUT5"
+  uo[6]: "DBG_OUT6"
+  uo[7]: "MCHT_TXD"
 
   # Bidirectional pins
-  uio[0]: ""
-  uio[1]: ""
-  uio[2]: ""
-  uio[3]: ""
-  uio[4]: ""
-  uio[5]: ""
-  uio[6]: ""
-  uio[7]: ""
+  uio[0]: "IO0"
+  uio[1]: "IO1"
+  uio[2]: "IO2"
+  uio[3]: "IO3"
+  uio[4]: "IO4"
+  uio[5]: "IO5"
+  uio[6]: "IO6"
+  uio[7]: "IO7"
 
 # Do not change!
 yaml_version: 6
