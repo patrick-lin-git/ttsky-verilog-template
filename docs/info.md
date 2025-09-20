@@ -9,7 +9,10 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+This chip perform machester encode or decode function that conver a paralle 8 bit of data to serial bit stream.
+Here below is the pin function:
+DIR:  1: Encode (TX) / 0: Decode (RX)
+
 
 ## How to test
 
