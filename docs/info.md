@@ -31,10 +31,9 @@ Here below is the pin function:
   DBGO[0] will refect the compare error if TX to Rx loopback doesn't match.
 
 ## External hardware
-  This chip require two clock
-  25MHz
-  100MHz
 
-  8 Bi-directional pins might be input or output mode depends on the DIR pin setting.
-  
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+	This chip require two clock
+  		25MHz
+		100MHz
+8 Bi-directional pins might be input or output mode depends on the DIR pin setting.
+
