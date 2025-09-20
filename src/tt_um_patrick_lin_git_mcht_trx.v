@@ -68,6 +68,12 @@ module tt_um_patrick_lin_git_mcht_trx
   // core logic
   wire mcht_rxdi = bist? mcht_txd : (dir? 1'b1 : mcht_rxd);
 
+  logic       tx_vld;
+  logic [7:0] tx_msg;
+  wire        tx_dne;
+
+  wire        rx_vld;
+
   defparam u_mcht_trx_0.pTX_MSG_LEN = 8;
   defparam u_mcht_trx_0.pRX_MSG_LEN = 8;
   MCHT_TRX u_mcht_trx_0 (
@@ -75,27 +81,74 @@ module tt_um_patrick_lin_git_mcht_trx
                            .RXD        ( mcht_rxdi ),  // I
 
                            .TX_VLD     ( tx_vld ),     // I
-                           .TX_MSG     ( tx_msg ),     // I pMSG_LEN
+                           .TX_MSG     ( tx_msg ),    // I pMSG_LEN
                            .TX_DNE     ( tx_dne ),     // O
 
-                           .RX_MSG     ( rx_msg ),     // O pMSG_LEN
+                           .RX_MSG     ( dec_rxd ),    // O pMSG_LEN
                            .RX_VLD     ( rx_vld ),     // O
 
-                           .CLK_25M    ( core_clk ),   // I
-                           .CLK100M    ( mcht_clk ),   // I
-                           .RST_N      ( pwon_rst_n )  // I
+                           .CLK_25M    ( clk ),        // I
+                           .CLK100M    ( clk100m ),    // I
+                           .RST_N      ( rst_n )  // I
                         );
 
 
+  logic tx_drv;
+  always_ff @(posedge clk or negedge rst_n)
+    if( !rst_n )
+      tx_vld <= 1'b0;
+    else
+      tx_vld <= tx_drv;
   
+  always_ff @(posedge clk or negedge rst_n)
+    if( !rst_n )
+      tx_msg <= 8'h00;
+    else
+      if( tx_drv )
+        tx_msg <= enc_txd;
+
+
+  // FSM
+  logic [2:0] tx_sm;
+   
+  always_ff @(posedge clk or negedge rst_n)
+    if( !rst_n ) begin
+      tx_sm  <= 3'd0;
+      tx_drv <= 1'b0;
+      end
+    else
+      case( tx_sm )
+        3'd0:    begin tx_sm <= 3'd1; tx_drv <= 1'b0; end
+        3'd1:    begin tx_sm <= 3'd2; tx_drv <= 1'b0; end
+        3'd2:    begin tx_sm <= 3'd3; tx_drv <= 1'b1; end
+        3'd3:    begin tx_sm <= 3'd4; tx_drv <= 1'b0; end
+        3'd4:    begin tx_sm <= 3'd5; tx_drv <= 1'b0; end
+        3'd5:    if( tx_dne )
+                 begin tx_sm <= 3'd6; tx_drv <= 1'b0; end
+                 else
+                 begin tx_sm <= 3'd5; tx_drv <= 1'b0; end
+
+        3'd6:    begin tx_sm <= 3'd7; tx_drv <= 1'b0; end 
+        3'd7:    begin tx_sm <= 3'd0; tx_drv <= 1'b0; end 
+        default: begin tx_sm <= 3'd0; tx_drv <= 1'b0; end
+      endcase
+  
+  
+  logic [7:0] tx_msg_bak;
+  always_ff @(posedge clk or negedge rst_n)
+    if( !rst_n )
+      tx_msg_bak <= 8'h00;
+    else
+      if( tx_dne & bist )
+        tx_msg_bak <= tx_msg;
   
   // ----------------------------------------------------------------------------
   // ----------------------------------------------------------------------------
   // DBG_OUT
-  logic dbg_out;
+  logic bist_er;
   always_comb
     if( bist )
-      dbg_out = 7'b000_0000;
+      dbg_out = {6'b000_000, bist_er};
     else
       case( dbg_sel )
         3'd0: dbg_out = {ena, clk, rst_n, bist, clk100m, dir, halt};
@@ -114,5 +167,15 @@ module tt_um_patrick_lin_git_mcht_trx
   // ----------------------------------------------------------------------------
   // BIST Logic
   // Internal loopback, Tx compare with Rx
+  logic cmp_err;
+  always_ff @(posedge clk or negedge rst_n)
+    if( !rst_n )
+      cmp_err <= 1'b0;
+    else
+      cmp_err <= cmp_err | (rx_vld? (|(tx_msg_bak ^ dec_rxd)) : 1'b0);
+      
+  assign bist_er = bist & cmp_err;
 
-endmodule
+
+
+endmodule // tt_um_patrick_lin_git_mcht_trx
