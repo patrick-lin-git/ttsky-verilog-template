@@ -10,7 +10,7 @@ PROJECT_SOURCES = tt_um_patrick_lin_git_mcht_trx.v
 ifneq ($(GATES),yes)
 
 # RTL simulation:
-SIM_BUILD				= sim_build/rtl
+SIM_BUILD	= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,pll4x.v)
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,mcht_enc.sv)
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,mcht_dec.sv)
