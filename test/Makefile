@@ -33,15 +33,22 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
+# COCOTB_TOPLEVEL is the name of the toplevel DUT module in your Verilog or VHDL file
+COCOTB_TOPLEVEL = tt_um_patrick_lin_git_mcht_trx
+
 # Allow sharing configuration between design and testbench via `include`:
-COMPILE_ARGS 		+= -I$(SRC_DIR)
+COMPILE_ARGS 	+= -I$(SRC_DIR)
 
 # Include the testbench sources:
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
 
 # MODULE is the basename of the Python test file
-MODULE = test
+# MODULE = test
+
+# COCOTB_TEST_MODULES is the basename of the Python test file(s)
+COCOTB_TEST_MODULES = test
+
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
