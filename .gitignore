@@ -2,6 +2,7 @@
 .idea
 *.vcd
 *.bak
+*.swp
 runs
 tt_submission
 src/user_config.json
