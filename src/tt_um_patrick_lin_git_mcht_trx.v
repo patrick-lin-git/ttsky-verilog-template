@@ -40,14 +40,15 @@ module tt_um_patrick_lin_git_mcht_trx
   // ----------------------------------------------------------------------------
   // ----------------------------------------------------------------------------
   // IN
-  wire       clk100m;
+  wire       clk100m_ext;
   wire       dir;               // 1: encode / 0: decode
   wire       halt;
   wire       bist;
-  wire [2:0] dbg_sel;
+  wire       pll_en;
+  wire [1:0] dbg_sel;
   wire       mcht_rxd;
 
-  assign {mcht_rxd, dbg_sel, bist, halt, dir, clk100m} = ui_in;
+  assign {mcht_rxd, dbg_sel, pll_en, bist, halt, dir, clk100m_ext} = ui_in;
 
 
   // ----------------------------------------------------------------------------
@@ -73,6 +74,17 @@ module tt_um_patrick_lin_git_mcht_trx
   wire        tx_dne;
 
   wire        rx_vld;
+
+  wire        pll_clko;
+  PLL4X       pll4x_0 ( .CLK25I ( clk ),       // I
+                        .CLK4XO ( pll_clko ),  // O
+                        .RST_N  ( rst_n )
+                      );
+
+  wire        clk100m;
+  assign      clk100m = pll_en? pll_clko :  clk100m_ext; 
+
+
 
   defparam u_mcht_trx_0.pTX_MSG_LEN = 8;
   defparam u_mcht_trx_0.pRX_MSG_LEN = 8;
@@ -151,15 +163,17 @@ module tt_um_patrick_lin_git_mcht_trx
       dbg_out = {6'b000_000, bist_er};
     else
       case( dbg_sel )
-        3'd0: dbg_out = {ena, clk, rst_n, bist, clk100m, dir, halt};
-        3'd1: dbg_out = {4'b0000, mcht_txd, mcht_rxdi, mcht_rxd};
-        3'd2: dbg_out = 7'b000_0000;
-        3'd3: dbg_out = 7'b000_0000;
-        3'd4: dbg_out = 7'b000_0000;
-        3'd5: dbg_out = 7'b000_0000;
-        3'd6: dbg_out = 7'b000_0000;
-        3'd7: dbg_out = 7'b000_0000;
+        2'd0: dbg_out = {ena, clk, rst_n, bist, clk100m, dir, halt};
+        2'd1: dbg_out = {4'b0000, mcht_txd, mcht_rxdi, mcht_rxd};
+        2'd2: dbg_out = 7'b000_0000;
+        2'd3: dbg_out = 7'b000_0000;
       endcase
+
+   //   3'd4: dbg_out = 7'b000_0000;
+   //   3'd5: dbg_out = 7'b000_0000;
+   //   3'd6: dbg_out = 7'b000_0000;
+   //   3'd7: dbg_out = 7'b000_0000;
+   // endcase
 
 
 
