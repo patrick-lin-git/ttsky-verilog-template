@@ -86,23 +86,24 @@ module tt_um_patrick_lin_git_mcht_trx
 
 
 
-  defparam u_mcht_trx_0.pTX_MSG_LEN = 8;
-  defparam u_mcht_trx_0.pRX_MSG_LEN = 8;
-  MCHT_TRX u_mcht_trx_0 (
-                           .TXD        ( mcht_txd  ),  // O
-                           .RXD        ( mcht_rxdi ),  // I
-
-                           .TX_VLD     ( tx_vld ),     // I
-                           .TX_MSG     ( tx_msg ),    // I pMSG_LEN
-                           .TX_DNE     ( tx_dne ),     // O
-
-                           .RX_MSG     ( dec_rxd ),    // O pMSG_LEN
-                           .RX_VLD     ( rx_vld ),     // O
-
-                           .CLK_25M    ( clk ),        // I
-                           .CLK100M    ( clk100m ),    // I
-                           .RST_N      ( rst_n )  // I
-                        );
+//defparam u_mcht_trx_0.pTX_MSG_LEN = 8;
+//defparam u_mcht_trx_0.pRX_MSG_LEN = 8;
+  MCHT_TRX #( .pTX_MSG_LEN(8),
+              .pRX_MSG_LEN(8) ) u_mcht_trx_0 (
+                                              .TXD        ( mcht_txd  ),  // O
+                                              .RXD        ( mcht_rxdi ),  // I
+                   
+                                              .TX_VLD     ( tx_vld ),     // I
+                                              .TX_MSG     ( tx_msg ),    // I pMSG_LEN
+                                              .TX_DNE     ( tx_dne ),     // O
+                   
+                                              .RX_MSG     ( dec_rxd ),    // O pMSG_LEN
+                                              .RX_VLD     ( rx_vld ),     // O
+                   
+                                              .CLK_25M    ( clk ),        // I
+                                              .CLK100M    ( clk100m ),    // I
+                                              .RST_N      ( rst_n )  // I
+                                             );
 
 
   logic tx_drv;

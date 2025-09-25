@@ -80,6 +80,7 @@ module MCHT_ENC #(parameter pMSG_LEN = 16)
       eBITX0:     fsm_ctl = {x0, x0, x0, x0, x0};
       eBITX1:     fsm_ctl = {x0, x0, x0, x1, x0};
       eEND:       fsm_ctl = {x1, x1, x1, x0, x0};
+      default:    fsm_ctl = {x0, x1, x1, x0, x1};
     //eEND1:      fsm_ctl = {x0, x1, x1, x0, x0};
     endcase
 

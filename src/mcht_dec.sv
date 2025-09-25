@@ -131,6 +131,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
       eLATCH:     fsm_ctl = {x0, x0, x1, x1, x0};
       eEND0:      fsm_ctl = {x1, x0, x0, x0, x0};
       eEND1:      fsm_ctl = {x1, x0, x0, x0, x0};
+      default:    fsm_ctl = {x0, x0, x0, x0, x1};  
     endcase
 
 
