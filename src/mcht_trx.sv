@@ -22,26 +22,26 @@ module MCHT_TRX #(parameter pTX_MSG_LEN = 16,
 
 
 
-  defparam u_mcht_enc_0.pMSG_LEN = pTX_MSG_LEN;
-  MCHT_ENC u_mcht_enc_0 (
-                         .SOF        ( TX_VLD ),     // I
-                         .MSG        ( TX_MSG ),     // I pMSG_LEN
-                         .DONE       ( TX_DNE ),     // O
-                         .TXD        ( TXD ),        // O
-                         .CLK_25M    ( CLK_25M ),    // I
-                         .RST_N      ( RST_N )       // I
-                        );
+//defparam u_mcht_enc_0.pMSG_LEN = pTX_MSG_LEN;
+  MCHT_ENC #(.pMSG_LEN( pTX_MSG_LEN )) u_mcht_enc_0 (
+                                                     .SOF        ( TX_VLD ),     // I
+                                                     .MSG        ( TX_MSG ),     // I pMSG_LEN
+                                                     .DONE       ( TX_DNE ),     // O
+                                                     .TXD        ( TXD ),        // O
+                                                     .CLK_25M    ( CLK_25M ),    // I
+                                                     .RST_N      ( RST_N )       // I
+                                                    );
   
   
-  defparam u_mcht_dec_0.pMSG_LEN = pRX_MSG_LEN;
-  MCHT_DEC u_mcht_dec_0 (
-                         .MSG        ( RX_MSG ),     // O pMSG_LEN
-                         .MSG_VLD    ( RX_VLD ),     // O
-                         .RXD        ( RXD ),        // I
-                         .CLK_25M    ( CLK_25M ),    // I
-                         .CLK100M    ( CLK100M ),    // I
-                         .RST_N      ( RST_N )       // I
-                        );
+//defparam u_mcht_dec_0.pMSG_LEN = pRX_MSG_LEN;
+  MCHT_DEC #(.pMSG_LEN( pRX_MSG_LEN )) u_mcht_dec_0 (
+                                                     .MSG        ( RX_MSG ),     // O pMSG_LEN
+                                                     .MSG_VLD    ( RX_VLD ),     // O
+                                                     .RXD        ( RXD ),        // I
+                                                     .CLK_25M    ( CLK_25M ),    // I
+                                                     .CLK100M    ( CLK100M ),    // I
+                                                     .RST_N      ( RST_N )       // I
+                                                    );
 
 
 

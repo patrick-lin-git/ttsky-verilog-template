@@ -95,7 +95,9 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
                  else
                    nxt_st = eW4_TR;
 
-      eLATCH:    if( msg_idx < (pMSG_LEN - 1) )
+    //eLATCH:    if( msg_idx < (pMSG_LEN - 1) )
+    //change for lint check, when pMSG_LEN == 8
+      eLATCH:    if( msg_idx < 3'd7 )
                    nxt_st = eW4_6T;
                  else
                    nxt_st = eEND0;

@@ -47,7 +47,8 @@ set ::env(DECAP_CELL) "\
 # clock
 set ::env(RUN_CTS) 1
 # period is in ns, so 20ns == 50mHz
-set ::env(CLOCK_PERIOD) "20"
+# change to 25MHz
+set ::env(CLOCK_PERIOD) "40"
 set ::env(CLOCK_PORT) {clk}
 
 # hold/slack margin

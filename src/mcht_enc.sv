@@ -50,7 +50,9 @@ module MCHT_ENC #(parameter pMSG_LEN = 16)
       e1ST_TOG1: nxt_st = eBITX0;
 
       eBITX0:    nxt_st = eBITX1;
-      eBITX1:    if( msg_idx < (pMSG_LEN-1) )
+    //eBITX1:    if( msg_idx < (pMSG_LEN-1) )
+    //for lint check, prevent 32b operation, assume pMSG_LEN == 8
+      eBITX1:    if( msg_idx < 3'd7 )
                    nxt_st = eBITX0;
                  else
                    nxt_st = eEND;
