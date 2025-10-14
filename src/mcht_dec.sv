@@ -12,16 +12,16 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
   input   wire                 RXD,
 
   input   wire                 CLK_25M,
-  input   wire                 CLK100M,
+  input   wire                 CLK125M,
   input   wire                 RST_N
 );
 
   localparam pMSG_WID = $clog2(pMSG_LEN);
 
   // -------------------------------------------------
-  // 100MHz Clock Domain
+  // 125MHz Clock Domain
   logic [3:0] idle_cnt;
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N ) 
       idle_cnt <= 4'h0;
     else
@@ -31,11 +31,17 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
         idle_cnt <= 4'h0;
 
 
-  wire rx_idle = &idle_cnt[3:2];   // >= 120ns
+  wire rx_idle = &idle_cnt;   // >= 120ns,  120/8 = 15
 
+  logic [2:0] rx_idle_t3;
+  always_ff @(posedge CLK125M or negedge RST_N)
+    if( !RST_N ) 
+      rx_idle_t3 <= 3'b000;
+    else
+      rx_idle_t3 <= {rx_idle_t3[1:0], rx_idle};
 
   logic [2:0] rxd_sync;
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N ) 
       rxd_sync <= 3'b111;
     else
@@ -54,7 +60,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
 
                      eW4_1STR,
 
-                     eW4_6T,
+                     eW4_8T,
 
                      eW4_TR,
                      eLATCH,
@@ -63,7 +69,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
                      eEND1 } cur_st, nxt_st;
 
 
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N ) 
       cur_st <= eIDLE;
     else
@@ -71,24 +77,24 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
 
 
   logic [pMSG_WID-1:0] msg_idx;
-  wire                 to_6t;      // timeout
+  wire                 to_7t;      // timeout
 
   always_comb
     case( cur_st )
-      eIDLE:     if( rxd_f )
+      eIDLE:     if( rxd_f & (|rx_idle_t3) )
                    nxt_st = eW4_1STR;
                  else
                    nxt_st = eIDLE;
 
       eW4_1STR:  if( rxd_r )
-                   nxt_st = eW4_6T;
+                   nxt_st = eW4_8T;
                  else
                    nxt_st = eW4_1STR;
 
-      eW4_6T:    if( to_6t )
+      eW4_8T:    if( to_7t )
                    nxt_st = eW4_TR;
                  else
-                   nxt_st = eW4_6T;
+                   nxt_st = eW4_8T;
 
       eW4_TR:    if( rxd_x )
                    nxt_st = eLATCH;
@@ -98,7 +104,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
     //eLATCH:    if( msg_idx < (pMSG_LEN - 1) )
     //change for lint check, when pMSG_LEN == 8
       eLATCH:    if( msg_idx < 3'd7 )
-                   nxt_st = eW4_6T;
+                   nxt_st = eW4_8T;
                  else
                    nxt_st = eEND0;
 
@@ -128,7 +134,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
     case( cur_st )
       eIDLE:      fsm_ctl = {x0, x0, x0, x0, x1};
       eW4_1STR:   fsm_ctl = {x0, x0, x0, x0, x0};
-      eW4_6T:     fsm_ctl = {x0, x1, x0, x0, x0};
+      eW4_8T:     fsm_ctl = {x0, x1, x0, x0, x0};
       eW4_TR:     fsm_ctl = {x0, x0, x0, x0, x0};
       eLATCH:     fsm_ctl = {x0, x0, x1, x1, x0};
       eEND0:      fsm_ctl = {x1, x0, x0, x0, x0};
@@ -150,7 +156,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
            inc_idx,
            clr_idx } = fsm_ctl;
 
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N ) 
       msg_idx <= {pMSG_WID{1'b0}};
     else
@@ -160,21 +166,29 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
         msg_idx <= msg_idx + {{(pMSG_WID-1){1'b0}}, inc_idx};
 
 
-  logic [5:0] shift_reg;
-  always_ff @(posedge CLK100M or negedge RST_N)
+  // 100M
+  // RXD  ___/```````````\___________/``````
+  //          0  1  2  3  4  5  6  7  0  1
+
+  // 125M
+  // RXD  ___/``````````````\______________/``````
+  //          0  1  2  3  4  5  6  7  8  9  0
+  logic [6:0] shift_reg;
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N ) 
-      shift_reg <= 6'b00_0001;
+      shift_reg <= 7'b000_0001;
     else
       if( clr_idx | inc_idx )
-        shift_reg <= 6'b00_0001;
+        shift_reg <= 7'b000_0001;
       else
         if( shift )
-          shift_reg <= {shift_reg[4:0], 1'b0};;
+          shift_reg <= {shift_reg[5:0], 1'b0};;
 
-  assign to_6t = shift_reg[5];
+//assign to_8t = shift_reg[7];
+  assign to_7t = shift_reg[6];
   /*
   logic txd0;
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N )
       txd <= 1'b1;
     else
@@ -184,7 +198,7 @@ module MCHT_DEC #(parameter pMSG_LEN = 16)
         txd <= ~txd;
   */
 
-  always_ff @(posedge CLK100M or negedge RST_N)
+  always_ff @(posedge CLK125M or negedge RST_N)
     if( !RST_N )
       MSG <= {pMSG_LEN{1'b0}};
     else

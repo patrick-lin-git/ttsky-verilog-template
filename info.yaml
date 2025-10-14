@@ -1,6 +1,6 @@
 # Tiny Tapeout project information
 project:
-  title:        "Manchester Encode/Decode with built-in 4X PLL" # Project title
+  title:        "Manchester Encode/Decode with built-in 5X PLL" # Project title
   author:       "patrick-lin-git"          # Your name
   discord:      "patricklin9633"           # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
   description:  "Manchester Encode/Decode" # One line description of what your project does
@@ -17,11 +17,12 @@ project:
   # Source files must be in ./src and you must list each source file separately, one per line.
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
-    - "tt_um_patrick_lin_git_mcht_trx.v"
-    - "pll4x.v"
+    - "user_cell.v"
+    - "adpll_5x.sv"
     - "mcht_enc.sv"
     - "mcht_dec.sv"
     - "mcht_trx.sv"
+    - "tt_um_patrick_lin_git_mcht_trx.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).

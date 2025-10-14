@@ -16,7 +16,7 @@ module MCHT_TRX #(parameter pTX_MSG_LEN = 16,
 
   // -----
   input   wire                    CLK_25M,
-  input   wire                    CLK100M,
+  input   wire                    CLK125M,
   input   wire                    RST_N
 );
 
@@ -39,7 +39,7 @@ module MCHT_TRX #(parameter pTX_MSG_LEN = 16,
                                                      .MSG_VLD    ( RX_VLD ),     // O
                                                      .RXD        ( RXD ),        // I
                                                      .CLK_25M    ( CLK_25M ),    // I
-                                                     .CLK100M    ( CLK100M ),    // I
+                                                     .CLK125M    ( CLK125M ),    // I
                                                      .RST_N      ( RST_N )       // I
                                                     );
 

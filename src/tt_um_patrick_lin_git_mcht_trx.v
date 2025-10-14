@@ -40,7 +40,7 @@ module tt_um_patrick_lin_git_mcht_trx
   // ----------------------------------------------------------------------------
   // ----------------------------------------------------------------------------
   // IN
-  wire       clk100m_ext;
+  wire       clk125m_ext;
   wire       dir;               // 1: encode / 0: decode
   wire       halt;
   wire       bist;
@@ -48,7 +48,7 @@ module tt_um_patrick_lin_git_mcht_trx
   wire [1:0] dbg_sel;
   wire       mcht_rxd;
 
-  assign {mcht_rxd, dbg_sel, pll_en, bist, halt, dir, clk100m_ext} = ui_in;
+  assign {mcht_rxd, dbg_sel, pll_en, bist, halt, dir, clk125m_ext} = ui_in;
 
 
   // ----------------------------------------------------------------------------
@@ -75,14 +75,26 @@ module tt_um_patrick_lin_git_mcht_trx
 
   wire        rx_vld;
 
-  wire        pll_clko;
-  PLL4X       pll4x_0 ( .CLK25I ( clk ),       // I
-                        .CLK4XO ( pll_clko ),  // O
-                        .RST_N  ( rst_n )
-                      );
+  wire        clk125m_pll;
+  wire        lock;
+  wire        load_base = 1'b0;    // TBD
+  wire  [7:0] base_dlys = 8'h00;   // TBD
 
-  wire        clk100m;
-  assign      clk100m = pll_en? pll_clko :  clk100m_ext; 
+  defparam u_adpll_5x_0.pFRQCY_DIVIDER = 3'd5;
+  ADPLL_5X u_adpll_5x_0 (
+                         .REF_CLKI   ( clk ),    // I
+                         .GEN_CLKO   ( clk125m_pll ),    // O
+                         .LOCK       ( lock ),       // O
+                         .LOAD_BASE  ( load_base ),  // I
+                         .BASE_DLYS  ( base_dlys ),  // I 8
+                         .RST_N      ( rst_n )       // I
+                        );
+
+
+
+
+  wire        clk125m;
+  assign      clk125m = pll_en? clk125m_pll :  clk125m_ext; 
 
 
 
@@ -94,14 +106,14 @@ module tt_um_patrick_lin_git_mcht_trx
                                               .RXD        ( mcht_rxdi ),  // I
                    
                                               .TX_VLD     ( tx_vld ),     // I
-                                              .TX_MSG     ( tx_msg ),    // I pMSG_LEN
+                                              .TX_MSG     ( tx_msg ),     // I pMSG_LEN
                                               .TX_DNE     ( tx_dne ),     // O
                    
                                               .RX_MSG     ( dec_rxd ),    // O pMSG_LEN
                                               .RX_VLD     ( rx_vld ),     // O
                    
                                               .CLK_25M    ( clk ),        // I
-                                              .CLK100M    ( clk100m ),    // I
+                                              .CLK125M    ( clk125m ),    // I
                                               .RST_N      ( rst_n )  // I
                                              );
 
@@ -164,7 +176,7 @@ module tt_um_patrick_lin_git_mcht_trx
       dbg_out = {6'b000_000, bist_er};
     else
       case( dbg_sel )
-        2'd0: dbg_out = {ena, clk, rst_n, bist, clk100m, dir, halt};
+        2'd0: dbg_out = {ena, clk, rst_n, bist, clk125m, dir, halt};
         2'd1: dbg_out = {4'b0000, mcht_txd, mcht_rxdi, mcht_rxd};
         2'd2: dbg_out = 7'b000_0000;
         2'd3: dbg_out = 7'b000_0000;
