@@ -1,11 +1,9 @@
 
 `ifndef VERILATOR_LINT_CHK
-`timescale 1ns / 1ps
 `endif // VERILATOR_LINT_CHK
 
 
 
-`include "project.svh"
 
 module ADPLL_5X #(parameter pFRQCY_DIVIDER = 3'd5)
 (
@@ -190,6 +188,8 @@ module ADPLL_5X #(parameter pFRQCY_DIVIDER = 3'd5)
       6'd62: dly_bpss = 64'b11000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
       6'd63: dly_bpss = 64'b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
 
+      default:  dly_bpss = 64'b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111;   // - 0
+
     endcase
 
 `else
@@ -203,7 +203,7 @@ module ADPLL_5X #(parameter pFRQCY_DIVIDER = 3'd5)
 
   // ------------------------------------------------------------------------------
   // Ring Osciallator Source
-  assign #0.4 dly_conn[0] = RST_N? ~ring_osco : 1'b0;
+  assign  dly_conn[0] = RST_N? ~ring_osco : 1'b0;
   
 genvar idx;
 generate
@@ -241,19 +241,19 @@ endgenerate
 
   always @(posedge ring_osco or negedge RST_N)
     if( !RST_N ) begin
-      div_cnt <= #(`dDFF_DLY) 3'd0;
-      div_clk <= #(`dDFF_DLY) 1'b0;
+      div_cnt <=  3'd0;
+      div_clk <=  1'b0;
       end
     else begin
       if( div_cnt == (pFRQCY_DIVIDER - 3'd1) ) begin
-        div_cnt <= #(`dDFF_DLY) 3'd0;
-        div_clk <= #(`dDFF_DLY) 1'b1;
+        div_cnt <=  3'd0;
+        div_clk <=  1'b1;
         end
       else
-        div_cnt <= #(`dDFF_DLY) div_cnt + 3'd1;
+        div_cnt <=  div_cnt + 3'd1;
 
       if( div_cnt == 3'd1 )
-        div_clk <= #(`dDFF_DLY) 1'b0;
+        div_clk <=  1'b0;
     end
 
 
@@ -261,9 +261,9 @@ endgenerate
   logic div_clkn;
   always @(negedge ring_osco or negedge RST_N)
     if( !RST_N )
-      div_clkn <= #(`dDFF_DLY) 1'b0;
+      div_clkn <=  1'b0;
     else
-      div_clkn <= #(`dDFF_DLY) (div_cnt == 3'd1)? 1'b1 : 1'b0;
+      div_clkn <=  (div_cnt == 3'd1)? 1'b1 : 1'b0;
 
 
 
@@ -283,21 +283,20 @@ endgenerate
   logic [2:0] xor_cnt;
   always @(negedge ring_osco or negedge RST_N)
     if( !RST_N ) begin
-      xor_cnt <= #(`dDFF_DLY) 3'd0;
-      LOCK    <= #(`dDFF_DLY) 1'b0;
+      xor_cnt <=  3'd0;
+      LOCK    <=  1'b0;
       end
     else begin
       if( clkxor | div_clkn )                                        // ignore the cross point
-        xor_cnt <= #(`dDFF_DLY) (&xor_cnt)? 3'd7: xor_cnt + 3'd1;
+        xor_cnt <=  (&xor_cnt)? 3'd7: xor_cnt + 3'd1;
       else
-        xor_cnt <= #(`dDFF_DLY) 3'd0;
+        xor_cnt <=  3'd0;
 
       LOCK <= &xor_cnt;
     end
 
 
 endmodule // ADPLL_5X
-`include "project.svh"
 
 //
 // Typical Delay should be around 0.14 ns
@@ -326,7 +325,6 @@ module DLY_CELL
 
 
 endmodule // DLY_CELL
-`include "project.svh"
 
 module FINE_TUNE
 (
@@ -349,14 +347,14 @@ module FINE_TUNE
 
   always_comb
     case( DLY_SEL )
-      2'd0: SIG_O = dly1_o;
-      2'd1: SIG_O = dly3_o;
-      2'd2: SIG_O = dly5_o;
-      2'd3: SIG_O = dly7_o;
+      2'd0:    SIG_O = dly1_o;
+      2'd1:    SIG_O = dly3_o;
+      2'd2:    SIG_O = dly5_o;
+      2'd3:    SIG_O = dly7_o;
+      default: SIG_O = dly1_o;
     endcase
 
 endmodule // FINE_TUNE
-`include "project.svh"
 
 module LATCH_1T
 (
@@ -376,9 +374,9 @@ module LATCH_1T
   wire  clr_set = clr_lthd | ~RST_N;
   always @(posedge SIG_I or posedge clr_set)
     if( clr_set )
-      set_lth <= #(`dDFF_DLY) 1'b0;
+      set_lth <=  1'b0;
     else
-      set_lth <= #(`dDFF_DLY) 1'b1;
+      set_lth <=  1'b1;
 
 
   // ---------------------------------------------------
@@ -386,9 +384,9 @@ module LATCH_1T
   // generate 1T pulse
   always @(negedge CLK or negedge RST_N)
     if( !RST_N )
-      clr_lth <= #(`dDFF_DLY) 1'b0;
+      clr_lth <=  1'b0;
     else
-      clr_lth <= #(`dDFF_DLY) clr_lth? 1'b0 : set_lth;
+      clr_lth <=  clr_lth? 1'b0 : set_lth;
 
 
   assign SIG_O = clr_lth;
@@ -400,10 +398,8 @@ module LATCH_1T
 
 endmodule // LATCH_1T
 `ifndef VERILATOR_LINT_CHK
-`timescale 1ns / 1ps
 `endif // LINT_CHK
 
-`include "project.svh"
 
 /* verilator lint_off TIMESCALEMOD */
 
@@ -448,8 +444,8 @@ module PFD
 
 //wire clk_ref_f;
   wire clk_ref_f_rst;
-//assign #0.03 clk_ref_f     = ref_clk_d4 & ~ref_clk_d0;
-  assign #0.03 clk_ref_f_rst = ref_clk_d7 & ~ref_clk_d3;
+//assign  clk_ref_f     = ref_clk_d4 & ~ref_clk_d0;
+  assign  clk_ref_f_rst = ref_clk_d7 & ~ref_clk_d3;
 
 
   wire fbk_clk_d0;
@@ -471,11 +467,11 @@ module PFD
 
 //wire clk_fbk_f;
   wire clk_fbk_f_rst;
-//assign #0.03 clk_fbk_f     = fbk_clk_d4 & ~fbk_clk_d0;                //  ____________/``\_______
-  assign #0.03 clk_fbk_f_rst = fbk_clk_d7 & ~fbk_clk_d3;                //  _____________/``\______
+//assign  clk_fbk_f     = fbk_clk_d4 & ~fbk_clk_d0;                //  ____________/``\_______
+  assign  clk_fbk_f_rst = fbk_clk_d7 & ~fbk_clk_d3;                //  _____________/``\______
 
 //wire clk_two_f;
-//assign #0.03 clk_two_f = clk_ref_f | clk_fbk_f;
+//assign  clk_two_f = clk_ref_f | clk_fbk_f;
 
 //wire rst_all;
   wire rst_up;
@@ -484,109 +480,109 @@ module PFD
   logic up_ff;
   always_ff @(posedge CLKI_REF or posedge rst_up)
     if( rst_up )
-      up_ff <= #(`dDFF_DLY) 1'b0;
+      up_ff <=  1'b0;
     else
-      up_ff <= #(`dDFF_DLY) 1'b1;
+      up_ff <=  1'b1;
 
   logic dn_ff;
   always_ff @(posedge CLKI_FBK or posedge rst_dn)
     if( rst_dn )
-      dn_ff <= #(`dDFF_DLY) 1'b0;
+      dn_ff <=  1'b0;
     else
-      dn_ff <= #(`dDFF_DLY) 1'b1;
+      dn_ff <=  1'b1;
 
-//assign #0.05 rst_all = RST_N? (up_ff & dn_ff) :  1'b1;
-//assign #0.05 rst_up  = RST_N? dn_ff :  1'b1;
-//assign #0.05 rst_dn  = RST_N? up_ff :  1'b1;
-//assign #0.05 rst_up  = RST_N? (up_ff & dn_ff) :  1'b1;
-//assign #0.05 rst_dn  = RST_N? (up_ff & dn_ff) :  1'b1;
-//assign #0.05 rst_up  = RST_N? (up_ff & dn_ff & ~CLKI_FBK) :  1'b1;
-//assign #0.05 rst_dn  = RST_N? (up_ff & dn_ff & ~CLKI_REF) :  1'b1;
+//assign  rst_all = RST_N? (up_ff & dn_ff) :  1'b1;
+//assign  rst_up  = RST_N? dn_ff :  1'b1;
+//assign  rst_dn  = RST_N? up_ff :  1'b1;
+//assign  rst_up  = RST_N? (up_ff & dn_ff) :  1'b1;
+//assign  rst_dn  = RST_N? (up_ff & dn_ff) :  1'b1;
+//assign  rst_up  = RST_N? (up_ff & dn_ff & ~CLKI_FBK) :  1'b1;
+//assign  rst_dn  = RST_N? (up_ff & dn_ff & ~CLKI_REF) :  1'b1;
 //wire rst_up_algn;
 //wire rst_dn_algn;
-//assign #0.05 rst_up  = RST_N? (rst_up_algn | (up_ff & dn_ff)) :  1'b1;
-//assign #0.05 rst_dn  = RST_N? (rst_dn_algn | (up_ff & dn_ff)) :  1'b1;
-  assign #0.05 rst_up  = RST_N? (clk_ref_f_rst | (up_ff & dn_ff)) :  1'b1;
-  assign #0.05 rst_dn  = RST_N? (clk_fbk_f_rst | (up_ff & dn_ff)) :  1'b1;
+//assign  rst_up  = RST_N? (rst_up_algn | (up_ff & dn_ff)) :  1'b1;
+//assign  rst_dn  = RST_N? (rst_dn_algn | (up_ff & dn_ff)) :  1'b1;
+  assign  rst_up  = RST_N? (clk_ref_f_rst | (up_ff & dn_ff)) :  1'b1;
+  assign  rst_dn  = RST_N? (clk_fbk_f_rst | (up_ff & dn_ff)) :  1'b1;
 
 //logic up_dt_vld;  // prior cycle is almost aligned, fbk is leading
 //logic dn_dt_vld;  // prior cycle is almost aligned, ref is leading
   logic dlt_vld_cyc;
   wire  up_src;
   // width propotional to delta timing
-//assign #0.03 up_src = up_ff & ~dn_ff & up_dt_vld;
-//assign #0.03 up_src = up_ff & ~dn_ff & dlt_vld_cyc;
-  assign #0.03 up_src = up_ff & ~dn_ff;
+//assign  up_src = up_ff & ~dn_ff & up_dt_vld;
+//assign  up_src = up_ff & ~dn_ff & dlt_vld_cyc;
+  assign  up_src = up_ff & ~dn_ff;
 
   // width propotional to delta timing
   wire  dn_src;
-//assign #0.03 dn_src = dn_ff & ~up_ff & dn_dt_vld;
-//assign #0.03 dn_src = dn_ff & ~up_ff & dlt_vld_cyc;
-  assign #0.03 dn_src = dn_ff & ~up_ff;
+//assign  dn_src = dn_ff & ~up_ff & dn_dt_vld;
+//assign  dn_src = dn_ff & ~up_ff & dlt_vld_cyc;
+  assign  dn_src = dn_ff & ~up_ff;
 
 
   // ------------------------------------------------------
   // UP
   always_ff @(posedge ref_clk_d0 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      UP[0] <= #(`dDFF_DLY) 1'b0;
+      UP[0] <=  1'b0;
     else
-      UP[0] <= #(`dDFF_DLY) up_src;
+      UP[0] <=  up_src;
 
   always_ff @(posedge ref_clk_d1 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      UP[1] <= #(`dDFF_DLY) 1'b0;
+      UP[1] <=  1'b0;
     else
-      UP[1] <= #(`dDFF_DLY) up_src;
+      UP[1] <=  up_src;
 
   always_ff @(posedge ref_clk_d2 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      UP[2] <= #(`dDFF_DLY) 1'b0;
+      UP[2] <=  1'b0;
     else
-      UP[2] <= #(`dDFF_DLY) up_src;
+      UP[2] <=  up_src;
 
   always_ff @(posedge ref_clk_d4 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      UP[3] <= #(`dDFF_DLY) 1'b0;
+      UP[3] <=  1'b0;
     else
-      UP[3] <= #(`dDFF_DLY) up_src;
+      UP[3] <=  up_src;
 
   always_ff @(posedge ref_clk_d7 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      UP[4] <= #(`dDFF_DLY) 1'b0;
+      UP[4] <=  1'b0;
     else
-      UP[4] <= #(`dDFF_DLY) up_src;
+      UP[4] <=  up_src;
   
   // DOWN
   always_ff @(posedge fbk_clk_d0 or posedge clk_ref_f_rst)
     if( clk_ref_f_rst )
-      DN[0] <= #(`dDFF_DLY) 1'b0;
+      DN[0] <=  1'b0;
     else
-      DN[0] <= #(`dDFF_DLY) dn_src;
+      DN[0] <=  dn_src;
 
   always_ff @(posedge fbk_clk_d1 or posedge clk_ref_f_rst )
     if( clk_ref_f_rst )
-      DN[1] <= #(`dDFF_DLY) 1'b0;
+      DN[1] <=  1'b0;
     else
-      DN[1] <= #(`dDFF_DLY) dn_src;
+      DN[1] <=  dn_src;
 
   always_ff @(posedge fbk_clk_d2 or posedge clk_ref_f_rst )
     if( clk_ref_f_rst )
-      DN[2] <= #(`dDFF_DLY) 1'b0;
+      DN[2] <=  1'b0;
     else
-      DN[2] <= #(`dDFF_DLY) dn_src;
+      DN[2] <=  dn_src;
 
   always_ff @(posedge fbk_clk_d4 or posedge clk_ref_f_rst )
     if( clk_ref_f_rst )
-      DN[3] <= #(`dDFF_DLY) 1'b0;
+      DN[3] <=  1'b0;
     else
-      DN[3] <= #(`dDFF_DLY) dn_src;
+      DN[3] <=  dn_src;
 
   always_ff @(posedge fbk_clk_d7 or posedge clk_ref_f_rst )
     if( clk_ref_f_rst )
-      DN[4] <= #(`dDFF_DLY) 1'b0;
+      DN[4] <=  1'b0;
     else
-      DN[4] <= #(`dDFF_DLY) dn_src;
+      DN[4] <=  dn_src;
 
 
   //------------------------------------------------------------------------------
@@ -595,34 +591,34 @@ module PFD
   logic ref_smp0;
   always_ff @(posedge ref_clk_d0 or posedge clk_ref_f_rst)
     if( clk_ref_f_rst )
-      ref_smp0 <= #(`dDFF_DLY) 1'b0;
+      ref_smp0 <=  1'b0;
     else
-      ref_smp0 <= #(`dDFF_DLY) fbk_clk_d1;
+      ref_smp0 <=  fbk_clk_d1;
 
   logic ref_smp1;
   always_ff @(posedge ref_clk_d2 or posedge clk_ref_f_rst)
     if( clk_ref_f_rst )
-      ref_smp1 <= #(`dDFF_DLY) 1'b0;
+      ref_smp1 <=  1'b0;
     else
-      ref_smp1 <= #(`dDFF_DLY) fbk_clk_d1;
+      ref_smp1 <=  fbk_clk_d1;
 
-  wire #0.03 ref_aligned = ~ref_smp0 & ref_smp1;         // rising of CLKI_FBK is in between two CLKI_REF, REF is leading FBK
+  wire  ref_aligned = ~ref_smp0 & ref_smp1;         // rising of CLKI_FBK is in between two CLKI_REF, REF is leading FBK
 
   /*
   // 1/2 T
   logic ref_lead_algn;
   always_ff @(posedge ref_aligned or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      ref_lead_algn <= #(`dDFF_DLY) 1'b0;
+      ref_lead_algn <=  1'b0;
     else
-      ref_lead_algn <= #(`dDFF_DLY) 1'b1;
+      ref_lead_algn <=  1'b1;
  
   logic ref_lead_algn_sync;
   always_ff @(negedge fbk_clk_d0 or negedge RST_N)
     if( !RST_N )
-      ref_lead_algn_sync <= #(`dDFF_DLY) 1'b0;
+      ref_lead_algn_sync <=  1'b0;
     else
-      ref_lead_algn_sync <= #(`dDFF_DLY) ref_lead_algn;
+      ref_lead_algn_sync <=  ref_lead_algn;
   */
 
   //------------------------------------------------------------------
@@ -630,53 +626,53 @@ module PFD
   logic fbk_smp0;
   always_ff @(posedge fbk_clk_d0 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      fbk_smp0 <= #(`dDFF_DLY) 1'b0;
+      fbk_smp0 <=  1'b0;
     else
-    //fbk_smp0 <= #(`dDFF_DLY) CLKI_REF;
-      fbk_smp0 <= #(`dDFF_DLY) ref_clk_d1;
+    //fbk_smp0 <=  CLKI_REF;
+      fbk_smp0 <=  ref_clk_d1;
 
   logic fbk_smp1;
   always_ff @(posedge fbk_clk_d2 or posedge clk_fbk_f_rst)
     if( clk_fbk_f_rst )
-      fbk_smp1 <= #(`dDFF_DLY) 1'b0;
+      fbk_smp1 <=  1'b0;
     else
-      fbk_smp1 <= #(`dDFF_DLY) ref_clk_d1;
+      fbk_smp1 <=  ref_clk_d1;
 
-  wire #0.03 fbk_aligned = ~fbk_smp0 & fbk_smp1;         // rising of CLKI_REF is in between two CLKI_FBK, FBK is leading REF
+  wire  fbk_aligned = ~fbk_smp0 & fbk_smp1;         // rising of CLKI_REF is in between two CLKI_FBK, FBK is leading REF
 
   /*
   // 1/2 T
   logic fbk_lead_algn;
   always_ff @(posedge fbk_aligned or posedge clk_ref_f_rst)
     if( clk_ref_f_rst )
-      fbk_lead_algn <= #(`dDFF_DLY) 1'b0;
+      fbk_lead_algn <=  1'b0;
     else
-      fbk_lead_algn <= #(`dDFF_DLY) 1'b1;
+      fbk_lead_algn <=  1'b1;
 
   logic fbk_lead_algn_sync;
   always_ff @(negedge ref_clk_d0 or negedge RST_N)
     if( !RST_N )
-      fbk_lead_algn_sync <= #(`dDFF_DLY) 1'b0;
+      fbk_lead_algn_sync <=  1'b0;
     else
-      fbk_lead_algn_sync <= #(`dDFF_DLY) fbk_lead_algn;
+      fbk_lead_algn_sync <=  fbk_lead_algn;
   */
 
   
-  wire #0.03 clk_aligned = ref_aligned & fbk_aligned;
+  wire  clk_aligned = ref_aligned & fbk_aligned;
   wire       clk_alignel;
 
   LATCH_1T u_lth_clk_algn ( .SIG_I( clk_aligned ), .SIG_O( clk_alignel ), .CLK( CLKI_REF ), .RST_N( RST_N ) );
 
 
   // delta glitch
-//wire #0.03 clk_aligned = ref_lead_algn_sync & fbk_lead_algn_sync;
+//wire  clk_aligned = ref_lead_algn_sync & fbk_lead_algn_sync;
   logic clk_aligned_sync;
   always_ff @(negedge CLKI_REF or negedge RST_N)
     if( !RST_N)
       clk_aligned_sync <= 1'b0;
     else
-    //clk_aligned_sync <= #(`dDFF_DLY) ref_aligned & fbk_aligned;
-      clk_aligned_sync <= #(`dDFF_DLY) clk_alignel;
+    //clk_aligned_sync <=  ref_aligned & fbk_aligned;
+      clk_aligned_sync <=  clk_alignel;
 
 
 
@@ -691,30 +687,30 @@ module PFD
   logic up_dt_vld5;
   always_ff @(negedge CLKI_REF or negedge RST_N)
     if( !RST_N) begin
-      up_dt_vld0 <= #(`dDFF_DLY) 1'b0;
-      up_dt_vld1 <= #(`dDFF_DLY) 1'b0;
-      up_dt_vld2 <= #(`dDFF_DLY) 1'b0;
-      up_dt_vld3 <= #(`dDFF_DLY) 1'b0;
-      up_dt_vld4 <= #(`dDFF_DLY) 1'b0;
-      up_dt_vld5 <= #(`dDFF_DLY) 1'b0;
+      up_dt_vld0 <=  1'b0;
+      up_dt_vld1 <=  1'b0;
+      up_dt_vld2 <=  1'b0;
+      up_dt_vld3 <=  1'b0;
+      up_dt_vld4 <=  1'b0;
+      up_dt_vld5 <=  1'b0;
       end
     else begin
-    //up_dt_vld <= #(`dDFF_DLY) clk_aligned;
-    //up_dt_vld0 <= #(`dDFF_DLY) up_dt_vld0? 1'b0 : fbk_lead_algn;
-      up_dt_vld0 <= #(`dDFF_DLY) up_dt_vld0? 1'b0 : clk_aligned;
-    //up_dt_vld <= #(`dDFF_DLY) ref_lead_algn;
-      up_dt_vld1 <= #(`dDFF_DLY) up_dt_vld0;
-      up_dt_vld2 <= #(`dDFF_DLY) up_dt_vld1;
-      up_dt_vld3 <= #(`dDFF_DLY) up_dt_vld2;
-      up_dt_vld4 <= #(`dDFF_DLY) up_dt_vld3;
-      up_dt_vld5 <= #(`dDFF_DLY) up_dt_vld4;
+    //up_dt_vld <=  clk_aligned;
+    //up_dt_vld0 <=  up_dt_vld0? 1'b0 : fbk_lead_algn;
+      up_dt_vld0 <=  up_dt_vld0? 1'b0 : clk_aligned;
+    //up_dt_vld <=  ref_lead_algn;
+      up_dt_vld1 <=  up_dt_vld0;
+      up_dt_vld2 <=  up_dt_vld1;
+      up_dt_vld3 <=  up_dt_vld2;
+      up_dt_vld4 <=  up_dt_vld3;
+      up_dt_vld5 <=  up_dt_vld4;
     end
     
-//assign #0.03 up_dt_vld =  up_dt_vld1 | up_dt_vld2;  
-//assign #0.03 up_dt_vld =  up_dt_vld0 | up_dt_vld4;  
-//assign #0.03 up_dt_vld =  up_dt_vld1 ;  
-  assign #0.03 up_dt_vld =  up_dt_vld0 | up_dt_vld4;  
-//assign #0.03 up_dt_vld =  up_dt_vld0 ;  
+//assign  up_dt_vld =  up_dt_vld1 | up_dt_vld2;  
+//assign  up_dt_vld =  up_dt_vld0 | up_dt_vld4;  
+//assign  up_dt_vld =  up_dt_vld1 ;  
+  assign  up_dt_vld =  up_dt_vld0 | up_dt_vld4;  
+//assign  up_dt_vld =  up_dt_vld0 ;  
 
   // delta
   logic dn_dt_vld0;
@@ -725,30 +721,30 @@ module PFD
   logic dn_dt_vld5;
   always_ff @(negedge CLKI_FBK or negedge RST_N)
     if( !RST_N) begin
-      dn_dt_vld0 <= #(`dDFF_DLY) 1'b0;
-      dn_dt_vld1 <= #(`dDFF_DLY) 1'b0;
-      dn_dt_vld2 <= #(`dDFF_DLY) 1'b0;
-      dn_dt_vld3 <= #(`dDFF_DLY) 1'b0;
-      dn_dt_vld4 <= #(`dDFF_DLY) 1'b0;
-      dn_dt_vld5 <= #(`dDFF_DLY) 1'b0;
+      dn_dt_vld0 <=  1'b0;
+      dn_dt_vld1 <=  1'b0;
+      dn_dt_vld2 <=  1'b0;
+      dn_dt_vld3 <=  1'b0;
+      dn_dt_vld4 <=  1'b0;
+      dn_dt_vld5 <=  1'b0;
       end
     else begin
-    //dn_dt_vld <= #(`dDFF_DLY) clk_aligned;
-    //dn_dt_vld0 <= #(`dDFF_DLY) dn_dt_vld0? 1'b0 : ref_lead_algn;
-      dn_dt_vld0 <= #(`dDFF_DLY) dn_dt_vld0? 1'b0 : clk_aligned;
-    //dn_dt_vld <= #(`dDFF_DLY) fbk_lead_algn;
-      dn_dt_vld1 <= #(`dDFF_DLY) dn_dt_vld0;
-      dn_dt_vld2 <= #(`dDFF_DLY) dn_dt_vld1;
-      dn_dt_vld3 <= #(`dDFF_DLY) dn_dt_vld2;
-      dn_dt_vld4 <= #(`dDFF_DLY) dn_dt_vld3;
-      dn_dt_vld5 <= #(`dDFF_DLY) dn_dt_vld4;
+    //dn_dt_vld <=  clk_aligned;
+    //dn_dt_vld0 <=  dn_dt_vld0? 1'b0 : ref_lead_algn;
+      dn_dt_vld0 <=  dn_dt_vld0? 1'b0 : clk_aligned;
+    //dn_dt_vld <=  fbk_lead_algn;
+      dn_dt_vld1 <=  dn_dt_vld0;
+      dn_dt_vld2 <=  dn_dt_vld1;
+      dn_dt_vld3 <=  dn_dt_vld2;
+      dn_dt_vld4 <=  dn_dt_vld3;
+      dn_dt_vld5 <=  dn_dt_vld4;
     end
 
-//assign #0.03 dn_dt_vld =  dn_dt_vld1 | dn_dt_vld2;  
-//assign #0.03 dn_dt_vld =  dn_dt_vld0 | dn_dt_vld4;  
-//assign #0.03 dn_dt_vld =  dn_dt_vld1 ;  
-//assign #0.03 dn_dt_vld =  dn_dt_vld0 | dn_dt_vld4;  
-  assign #0.03 dn_dt_vld =  dn_dt_vld2 ;  
+//assign  dn_dt_vld =  dn_dt_vld1 | dn_dt_vld2;  
+//assign  dn_dt_vld =  dn_dt_vld0 | dn_dt_vld4;  
+//assign  dn_dt_vld =  dn_dt_vld1 ;  
+//assign  dn_dt_vld =  dn_dt_vld0 | dn_dt_vld4;  
+  assign  dn_dt_vld =  dn_dt_vld2 ;  
 */
 
   /*
@@ -771,25 +767,25 @@ module PFD
 //always_ff @(negedge CLKI_FBK or negedge RST_N)
   always_ff @(negedge CLKI_REF or negedge RST_N)
     if( !RST_N) begin
-      dlt_vld_cyc0 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc1 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc2 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc3 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc4 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc5 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc6 <= #(`dDFF_DLY) 1'b0;
-      dlt_vld_cyc7 <= #(`dDFF_DLY) 1'b0;
+      dlt_vld_cyc0 <=  1'b0;
+      dlt_vld_cyc1 <=  1'b0;
+      dlt_vld_cyc2 <=  1'b0;
+      dlt_vld_cyc3 <=  1'b0;
+      dlt_vld_cyc4 <=  1'b0;
+      dlt_vld_cyc5 <=  1'b0;
+      dlt_vld_cyc6 <=  1'b0;
+      dlt_vld_cyc7 <=  1'b0;
       end
     else begin
-    //dlt_vld_cyc0 <= #(`dDFF_DLY) dlt_vld_cyc0? 1'b0 : clk_aligned;   // no up | down, don't care
-      dlt_vld_cyc0 <= #(`dDFF_DLY) dlt_vld_cyc0? 1'b0 : clk_algn_sync;   // no up | down, don't care
-      dlt_vld_cyc1 <= #(`dDFF_DLY) dlt_vld_cyc0 ;
-      dlt_vld_cyc2 <= #(`dDFF_DLY) dlt_vld_cyc1 ;
-      dlt_vld_cyc3 <= #(`dDFF_DLY) dlt_vld_cyc2 ;
-      dlt_vld_cyc4 <= #(`dDFF_DLY) dlt_vld_cyc3 ;
-      dlt_vld_cyc5 <= #(`dDFF_DLY) dlt_vld_cyc4 ;
-      dlt_vld_cyc6 <= #(`dDFF_DLY) dlt_vld_cyc5 ;
-      dlt_vld_cyc7 <= #(`dDFF_DLY) dlt_vld_cyc6 ;
+    //dlt_vld_cyc0 <=  dlt_vld_cyc0? 1'b0 : clk_aligned;   // no up | down, don't care
+      dlt_vld_cyc0 <=  dlt_vld_cyc0? 1'b0 : clk_algn_sync;   // no up | down, don't care
+      dlt_vld_cyc1 <=  dlt_vld_cyc0 ;
+      dlt_vld_cyc2 <=  dlt_vld_cyc1 ;
+      dlt_vld_cyc3 <=  dlt_vld_cyc2 ;
+      dlt_vld_cyc4 <=  dlt_vld_cyc3 ;
+      dlt_vld_cyc5 <=  dlt_vld_cyc4 ;
+      dlt_vld_cyc6 <=  dlt_vld_cyc5 ;
+      dlt_vld_cyc7 <=  dlt_vld_cyc6 ;
     end
 
 //logic clk_align_1t;
@@ -800,17 +796,17 @@ module PFD
 //    clk_align_1t <= clk_aligned;
 
 
-//assign #0.03 dlt_vld_cyc =  dlt_vld_cyc1 | dlt_vld_cyc2;  
-//assign #0.03 dlt_vld_cyc =  dlt_vld_cyc0 | dlt_vld_cyc4;  
-//assign #0.03 dlt_vld_cyc =  dlt_vld_cyc1 ;  
-//assign #0.03 dlt_vld_cyc =  dlt_vld_cyc0 | dlt_vld_cyc4;  
-//assign #0.03 dlt_vld_cyc =  (dlt_vld_cyc0 | dlt_vld_cyc6) & ~clk_align_1t;
-  assign #0.03 dlt_vld_cyc =  dlt_vld_cyc0 | ((dlt_vld_cyc3 | dlt_vld_cyc6) & ~clk_algn_sync);
-//assign #0.03 dlt_vld_cyc =  clk_aligned | (dlt_vld_cyc6 & ~clk_algn_sync);
+//assign  dlt_vld_cyc =  dlt_vld_cyc1 | dlt_vld_cyc2;  
+//assign  dlt_vld_cyc =  dlt_vld_cyc0 | dlt_vld_cyc4;  
+//assign  dlt_vld_cyc =  dlt_vld_cyc1 ;  
+//assign  dlt_vld_cyc =  dlt_vld_cyc0 | dlt_vld_cyc4;  
+//assign  dlt_vld_cyc =  (dlt_vld_cyc0 | dlt_vld_cyc6) & ~clk_align_1t;
+  assign  dlt_vld_cyc =  dlt_vld_cyc0 | ((dlt_vld_cyc3 | dlt_vld_cyc6) & ~clk_algn_sync);
+//assign  dlt_vld_cyc =  clk_aligned | (dlt_vld_cyc6 & ~clk_algn_sync);
   */
 
-//assign #0.03 F1ST_SYNC   =  clk_aligned_sync;
-  assign #0.03 F1ST_SYNC   =  clk_alignel;
+//assign  F1ST_SYNC   =  clk_aligned_sync;
+  assign  F1ST_SYNC   =  clk_alignel;
 
 
 
@@ -822,15 +818,15 @@ module PFD
   logic [2:0] hi_cnt;
   always_ff @(posedge CLKI_OSC or negedge RST_N)
     if( !RST_N ) begin
-      hi_cnt   <= #(`dDFF_DLY) 3'd0;
-      TOO_FAST <= #(`dDFF_DLY) 1'b0;
+      hi_cnt   <=  3'd0;
+      TOO_FAST <=  1'b0;
       end
     else
       if( CLKI_REF )
-        hi_cnt   <= #(`dDFF_DLY) (&hi_cnt)? 3'd7 : (hi_cnt + 3'd1);
+        hi_cnt   <=  (&hi_cnt)? 3'd7 : (hi_cnt + 3'd1);
       else begin
-        TOO_FAST <= #(`dDFF_DLY) (hi_cnt > 3'd3)? 1'b1 : 1'b0;        // count 4 times
-        hi_cnt   <= #(`dDFF_DLY) 3'd0;
+        TOO_FAST <=  (hi_cnt > 3'd3)? 1'b1 : 1'b0;        // count 4 times
+        hi_cnt   <=  3'd0;
       end
 
   logic [2:0] lo_cnt;
@@ -841,12 +837,12 @@ module PFD
       end
     else
       if( CLKI_REF ) begin
-        lo_cnt   <= #(`dDFF_DLY) 3'd0;
+        lo_cnt   <=  3'd0;
       // 20ns low window clocked by 8ns osc clock
-        TOO_SLOW <= #(`dDFF_DLY) ((lo_cnt ==3'd1)      )? 1'b1 : 1'b0;    // count at least two time
+        TOO_SLOW <=  ((lo_cnt ==3'd1)      )? 1'b1 : 1'b0;    // count at least two time
         end
       else
-        lo_cnt   <= #(`dDFF_DLY) (&lo_cnt)? 3'd7 : (lo_cnt + 3'd1);
+        lo_cnt   <=  (&lo_cnt)? 3'd7 : (lo_cnt + 3'd1);
   
   /*
   //---------------------------------------------
@@ -868,7 +864,6 @@ module PFD
 endmodule // PFD
 
 /* verilator lint_on TIMESCALEMOD */
-`include "project.svh"
 
 module UP_DN_CTRL
 (
@@ -937,26 +932,26 @@ module UP_DN_CTRL
 //always_ff @(negedge CLKI_FBK or negedge RST_N)
   always_ff @(negedge REF_CLK or negedge RST_N)
     if( !RST_N) begin
-      f1st_sync_cyc0 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc1 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc2 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc3 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc4 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc5 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc6 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc7 <= #(`dDFF_DLY) 1'b0;
-      f1st_sync_cyc8 <= #(`dDFF_DLY) 1'b0;
+      f1st_sync_cyc0 <=  1'b0;
+      f1st_sync_cyc1 <=  1'b0;
+      f1st_sync_cyc2 <=  1'b0;
+      f1st_sync_cyc3 <=  1'b0;
+      f1st_sync_cyc4 <=  1'b0;
+      f1st_sync_cyc5 <=  1'b0;
+      f1st_sync_cyc6 <=  1'b0;
+      f1st_sync_cyc7 <=  1'b0;
+      f1st_sync_cyc8 <=  1'b0;
       end
     else begin
-      f1st_sync_cyc0 <= #(`dDFF_DLY) f1st_sync_cyc0? 1'b0 : F1ST_SYNC;      // no up | down, don't care
-      f1st_sync_cyc1 <= #(`dDFF_DLY) f1st_sync_cyc0 ;
-      f1st_sync_cyc2 <= #(`dDFF_DLY) f1st_sync_cyc1 ;
-      f1st_sync_cyc3 <= #(`dDFF_DLY) f1st_sync_cyc2 ;
-      f1st_sync_cyc4 <= #(`dDFF_DLY) f1st_sync_cyc3 ;
-      f1st_sync_cyc5 <= #(`dDFF_DLY) f1st_sync_cyc4 ;
-      f1st_sync_cyc6 <= #(`dDFF_DLY) f1st_sync_cyc5 ;
-      f1st_sync_cyc7 <= #(`dDFF_DLY) f1st_sync_cyc6 ;
-      f1st_sync_cyc8 <= #(`dDFF_DLY) f1st_sync_cyc7 ;
+      f1st_sync_cyc0 <=  f1st_sync_cyc0? 1'b0 : F1ST_SYNC;      // no up | down, don't care
+      f1st_sync_cyc1 <=  f1st_sync_cyc0 ;
+      f1st_sync_cyc2 <=  f1st_sync_cyc1 ;
+      f1st_sync_cyc3 <=  f1st_sync_cyc2 ;
+      f1st_sync_cyc4 <=  f1st_sync_cyc3 ;
+      f1st_sync_cyc5 <=  f1st_sync_cyc4 ;
+      f1st_sync_cyc6 <=  f1st_sync_cyc5 ;
+      f1st_sync_cyc7 <=  f1st_sync_cyc6 ;
+      f1st_sync_cyc8 <=  f1st_sync_cyc7 ;
     end
 
   assign f1st_adj_cyc = f1st_sync_cyc0;
@@ -999,83 +994,83 @@ module UP_DN_CTRL
   // ---------------------------------------------------
   always @(negedge REF_CLK or negedge RST_N)
     if( !RST_N )
-      CUR_DELAY <= #(`dDFF_DLY) 8'b1000_0000;
+      CUR_DELAY <=  8'b1000_0000;
     else
       if( LOAD_BASE )
-        CUR_DELAY <= #(`dDFF_DLY) BASE_DLYS;
+        CUR_DELAY <=  BASE_DLYS;
       else
         case( {too_fast, too_slow} )
-          2'b01:                      CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd20)? (CUR_DELAY - 8'd20) : 8'h00;
-          2'b10:                      CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + 8'd20);
+          2'b01:                      CUR_DELAY <=  (CUR_DELAY>=8'd20)? (CUR_DELAY - 8'd20) : 8'h00;
+          2'b10:                      CUR_DELAY <=  (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + 8'd20);
           2'b00: if( actv_chk_cyc )
                    casex( {UP, DN} )
-                     10'b00000_00001: CUR_DELAY <= #(`dDFF_DLY) (&CUR_DELAY      )? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd3  : 8'd1));
-                     10'b00000_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h7D)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd4  : 8'd2));
-                     10'b00000_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h7C)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd6  : 8'd3));
-                     10'b00000_01xxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h75)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd10 : 8'd5));
-                     10'b00000_1xxxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd20 : 8'd9));
+                     10'b00000_00001: CUR_DELAY <=  (&CUR_DELAY      )? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd3  : 8'd1));
+                     10'b00000_0001x: CUR_DELAY <=  (CUR_DELAY>=8'h7D)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd4  : 8'd2));
+                     10'b00000_001xx: CUR_DELAY <=  (CUR_DELAY>=8'h7C)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd6  : 8'd3));
+                     10'b00000_01xxx: CUR_DELAY <=  (CUR_DELAY>=8'h75)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd10 : 8'd5));
+                     10'b00000_1xxxx: CUR_DELAY <=  (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd20 : 8'd9));
             
-                     10'b00001_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd01)? (CUR_DELAY - (f1st_adj_cyc? 8'd3  : 8'd1)) : 8'h00;
-                     10'b0001x_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd02)? (CUR_DELAY - (f1st_adj_cyc? 8'd4  : 8'd2)) : 8'h00;
-                     10'b001xx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd03)? (CUR_DELAY - (f1st_adj_cyc? 8'd6  : 8'd3)) : 8'h00;
-                     10'b01xxx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd05)? (CUR_DELAY - (f1st_adj_cyc? 8'd10 : 8'd5)) : 8'h00;
-                     10'b1xxxx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd09)? (CUR_DELAY - (f1st_adj_cyc? 8'd20 : 8'd9)) : 8'h00;
+                     10'b00001_00000: CUR_DELAY <=  (CUR_DELAY>=8'd01)? (CUR_DELAY - (f1st_adj_cyc? 8'd3  : 8'd1)) : 8'h00;
+                     10'b0001x_00000: CUR_DELAY <=  (CUR_DELAY>=8'd02)? (CUR_DELAY - (f1st_adj_cyc? 8'd4  : 8'd2)) : 8'h00;
+                     10'b001xx_00000: CUR_DELAY <=  (CUR_DELAY>=8'd03)? (CUR_DELAY - (f1st_adj_cyc? 8'd6  : 8'd3)) : 8'h00;
+                     10'b01xxx_00000: CUR_DELAY <=  (CUR_DELAY>=8'd05)? (CUR_DELAY - (f1st_adj_cyc? 8'd10 : 8'd5)) : 8'h00;
+                     10'b1xxxx_00000: CUR_DELAY <=  (CUR_DELAY>=8'd09)? (CUR_DELAY - (f1st_adj_cyc? 8'd20 : 8'd9)) : 8'h00;
             
-                     10'b0000x_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h7D)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd4  : 8'd2));
-                     10'b000xx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h7C)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd6  : 8'd3));
-                     10'b00xxx_01xxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h75)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd10 : 8'd5));
-                     10'b0xxxx_1xxxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd20 : 8'd9));
+                     10'b00001_0001x: CUR_DELAY <=  (CUR_DELAY>=8'h7D)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd4  : 8'd2));
+                     10'b000xx_001xx: CUR_DELAY <=  (CUR_DELAY>=8'h7C)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd6  : 8'd3));
+                     10'b00xxx_01xxx: CUR_DELAY <=  (CUR_DELAY>=8'h75)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd10 : 8'd5));
+                     10'b0xxxx_1xxxx: CUR_DELAY <=  (CUR_DELAY>=8'h6B)? 8'h7F : (CUR_DELAY + (f1st_adj_cyc? 8'd20 : 8'd9));
             
-                     10'b0001x_00001: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd02)? (CUR_DELAY - (f1st_adj_cyc? 8'd4  : 8'd2)) : 8'h00;
-                     10'b001xx_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd03)? (CUR_DELAY - (f1st_adj_cyc? 8'd6  : 8'd3)) : 8'h00;
-                     10'b01xxx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd05)? (CUR_DELAY - (f1st_adj_cyc? 8'd10 : 8'd5)) : 8'h00;
-                     10'b01xxx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=8'd09)? (CUR_DELAY - (f1st_adj_cyc? 8'd20 : 8'd9)) : 8'h00;
+                     10'b0001x_00001: CUR_DELAY <=  (CUR_DELAY>=8'd02)? (CUR_DELAY - (f1st_adj_cyc? 8'd4  : 8'd2)) : 8'h00;
+                     10'b001xx_0001x: CUR_DELAY <=  (CUR_DELAY>=8'd03)? (CUR_DELAY - (f1st_adj_cyc? 8'd6  : 8'd3)) : 8'h00;
+                     10'b01xxx_001xx: CUR_DELAY <=  (CUR_DELAY>=8'd05)? (CUR_DELAY - (f1st_adj_cyc? 8'd10 : 8'd5)) : 8'h00;
+                     10'b01xxx_001xx: CUR_DELAY <=  (CUR_DELAY>=8'd09)? (CUR_DELAY - (f1st_adj_cyc? 8'd20 : 8'd9)) : 8'h00;
             
-                     default:         CUR_DELAY <= #(`dDFF_DLY) CUR_DELAY;           // no change
+                     default:         CUR_DELAY <=  CUR_DELAY;           // no change
                    endcase
             
 
-          default:                    CUR_DELAY <= #(`dDFF_DLY) CUR_DELAY;           // no change
+          default:                    CUR_DELAY <=  CUR_DELAY;           // no change
         endcase
   
   /*
   always @(posedge REF_CLK or negedge RST_N)
     if( !RST_N )
-      CUR_DELAY <= #(`dDFF_DLY) 7'b100_0000;
+      CUR_DELAY <=  7'b100_0000;
     else
       if( LOAD_BASE )
-        CUR_DELAY <= #(`dDFF_DLY) BASE_DLYS;
+        CUR_DELAY <=  BASE_DLYS;
       else
         case( {too_fast, too_slow} )
-          2'b01:                    CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd20)? (CUR_DELAY - 7'd20) : 7'h00;
-          2'b10:                    CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h76)? 7'h7F : (CUR_DELAY + 7'd20);
+          2'b01:                    CUR_DELAY <=  (CUR_DELAY>=7'd20)? (CUR_DELAY - 7'd20) : 7'h00;
+          2'b10:                    CUR_DELAY <=  (CUR_DELAY>=7'h76)? 7'h7F : (CUR_DELAY + 7'd20);
           2'b00: casex( {up_lth, dn_lth} )
-                   10'b00000_00001: CUR_DELAY <= #(`dDFF_DLY) (&CUR_DELAY      )? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd3  : 7'd1));
-                   10'b00000_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h7D)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd4  : 7'd2));
-                   10'b00000_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h7C)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd6  : 7'd3));
-                   10'b00000_01xxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h75)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd10 : 7'd5));
-                   10'b00000_1xxxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h6B)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd20 : 7'd9));
+                   10'b00000_00001: CUR_DELAY <=  (&CUR_DELAY      )? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd3  : 7'd1));
+                   10'b00000_0001x: CUR_DELAY <=  (CUR_DELAY>=7'h7D)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd4  : 7'd2));
+                   10'b00000_001xx: CUR_DELAY <=  (CUR_DELAY>=7'h7C)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd6  : 7'd3));
+                   10'b00000_01xxx: CUR_DELAY <=  (CUR_DELAY>=7'h75)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd10 : 7'd5));
+                   10'b00000_1xxxx: CUR_DELAY <=  (CUR_DELAY>=7'h6B)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd20 : 7'd9));
           
-                   10'b00001_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd01)? (CUR_DELAY - (f1st_adj_sync? 7'd3  : 7'd1)) : 7'h00;
-                   10'b0001x_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd02)? (CUR_DELAY - (f1st_adj_sync? 7'd4  : 7'd2)) : 7'h00;
-                   10'b001xx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd03)? (CUR_DELAY - (f1st_adj_sync? 7'd6  : 7'd3)) : 7'h00;
-                   10'b01xxx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd05)? (CUR_DELAY - (f1st_adj_sync? 7'd10 : 7'd5)) : 7'h00;
-                   10'b1xxxx_00000: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd09)? (CUR_DELAY - (f1st_adj_sync? 7'd20 : 7'd9)) : 7'h00;
+                   10'b00001_00000: CUR_DELAY <=  (CUR_DELAY>=7'd01)? (CUR_DELAY - (f1st_adj_sync? 7'd3  : 7'd1)) : 7'h00;
+                   10'b0001x_00000: CUR_DELAY <=  (CUR_DELAY>=7'd02)? (CUR_DELAY - (f1st_adj_sync? 7'd4  : 7'd2)) : 7'h00;
+                   10'b001xx_00000: CUR_DELAY <=  (CUR_DELAY>=7'd03)? (CUR_DELAY - (f1st_adj_sync? 7'd6  : 7'd3)) : 7'h00;
+                   10'b01xxx_00000: CUR_DELAY <=  (CUR_DELAY>=7'd05)? (CUR_DELAY - (f1st_adj_sync? 7'd10 : 7'd5)) : 7'h00;
+                   10'b1xxxx_00000: CUR_DELAY <=  (CUR_DELAY>=7'd09)? (CUR_DELAY - (f1st_adj_sync? 7'd20 : 7'd9)) : 7'h00;
           
-                   10'b0000x_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h7D)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd4  : 7'd2));
-                   10'b000xx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h7C)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd6  : 7'd3));
-                   10'b00xxx_01xxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h75)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd10 : 7'd5));
-                   10'b0xxxx_1xxxx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'h6B)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd20 : 7'd9));
+                   10'b0000x_0001x: CUR_DELAY <=  (CUR_DELAY>=7'h7D)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd4  : 7'd2));
+                   10'b000xx_001xx: CUR_DELAY <=  (CUR_DELAY>=7'h7C)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd6  : 7'd3));
+                   10'b00xxx_01xxx: CUR_DELAY <=  (CUR_DELAY>=7'h75)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd10 : 7'd5));
+                   10'b0xxxx_1xxxx: CUR_DELAY <=  (CUR_DELAY>=7'h6B)? 7'h7F : (CUR_DELAY + (f1st_adj_sync? 7'd20 : 7'd9));
           
-                   10'b0001x_00001: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd02)? (CUR_DELAY - (f1st_adj_sync? 7'd4  : 7'd2)) : 7'h00;
-                   10'b001xx_0001x: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd03)? (CUR_DELAY - (f1st_adj_sync? 7'd6  : 7'd3)) : 7'h00;
-                   10'b01xxx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd05)? (CUR_DELAY - (f1st_adj_sync? 7'd10 : 7'd5)) : 7'h00;
-                   10'b01xxx_001xx: CUR_DELAY <= #(`dDFF_DLY) (CUR_DELAY>=7'd09)? (CUR_DELAY - (f1st_adj_sync? 7'd20 : 7'd9)) : 7'h00;
+                   10'b0001x_00001: CUR_DELAY <=  (CUR_DELAY>=7'd02)? (CUR_DELAY - (f1st_adj_sync? 7'd4  : 7'd2)) : 7'h00;
+                   10'b001xx_0001x: CUR_DELAY <=  (CUR_DELAY>=7'd03)? (CUR_DELAY - (f1st_adj_sync? 7'd6  : 7'd3)) : 7'h00;
+                   10'b01xxx_001xx: CUR_DELAY <=  (CUR_DELAY>=7'd05)? (CUR_DELAY - (f1st_adj_sync? 7'd10 : 7'd5)) : 7'h00;
+                   10'b01xxx_001xx: CUR_DELAY <=  (CUR_DELAY>=7'd09)? (CUR_DELAY - (f1st_adj_sync? 7'd20 : 7'd9)) : 7'h00;
           
-                   default:         CUR_DELAY <= #(`dDFF_DLY) CUR_DELAY;           // no change
+                   default:         CUR_DELAY <=  CUR_DELAY;           // no change
                 endcase
 
-          default:                  CUR_DELAY <= #(`dDFF_DLY) CUR_DELAY;           // no change
+          default:                  CUR_DELAY <=  CUR_DELAY;           // no change
         endcase
   */    
 
