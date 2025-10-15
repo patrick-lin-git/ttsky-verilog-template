@@ -7,6 +7,8 @@ TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = tt_um_patrick_lin_git_mcht_trx.v
 
+$(info "PDK_ROOT is $(PDK_ROOT)")
+
 ifneq ($(GATES),yes)
 
 # RTL simulation:
@@ -29,13 +31,12 @@ COMPILE_ARGS    += -DSIM
 COMPILE_ARGS    += -DUNIT_DELAY=\#1
 
 # this gets copied in by the GDS action workflow
+VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
+VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
-
-VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
-VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 
 # Allow sharing configuration between design and testbench via `include`:
 COMPILE_ARGS 	+= -I$(SRC_DIR)
