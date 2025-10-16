@@ -477,6 +477,8 @@ module PFD
   wire rst_up;
   wire rst_dn;
 
+`ifdef RTL_SIM
+
   logic up_ff;
   always_ff @(posedge CLKI_REF or posedge rst_up)
     if( rst_up )
@@ -490,6 +492,15 @@ module PFD
       dn_ff <=  1'b0;
     else
       dn_ff <=  1'b1;
+`else
+
+  wire up_ff;
+  sky130_fd_sc_hd__dfrtp_1 dfrtp_up_ff_reg ( .CLK(CLKI_REF), .D(1'h1), .Q(up_ff), .RESET_B( ~rst_up ));
+
+  wire dn_ff;
+  sky130_fd_sc_hd__dfrtp_1 dfrtp_dn_ff_reg ( .CLK(CLKI_FBK), .D(1'h1), .Q(dn_ff), .RESET_B( ~rst_dn ));
+
+`endif // RTL_SIM
 
 //assign  rst_all = RST_N? (up_ff & dn_ff) :  1'b1;
 //assign  rst_up  = RST_N? dn_ff :  1'b1;
