@@ -51,6 +51,8 @@ set ::env(RUN_CTS) 1
 set ::env(CLOCK_PERIOD) "40"
 set ::env(CLOCK_PORT) {clk}
 
+set ::env(SYNTH_DRIVING_CELL_PIN) {Y}
+
 # hold/slack margin
 # set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.8 
 # set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.8 
