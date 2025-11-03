@@ -32,6 +32,7 @@
   "CLOCK_PORT": "clk",
   "PNR_SDC_FILE":     "dir::project.sdc",
   "SIGNOFF_SDC_FILE": "dir::project_signoff.sdc",
+  "SYNTH_DRIVING_CELL_PIN": "Y"
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
