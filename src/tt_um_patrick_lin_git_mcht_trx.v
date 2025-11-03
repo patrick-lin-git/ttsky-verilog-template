@@ -32,9 +32,11 @@ module tt_um_patrick_lin_git_mcht_trx
   // ----------------------------------------------------------------------------
   // OUT
   wire        mcht_txd;
-  logic [6:0] dbg_out;
+  logic [4:0] dbg_out;
+  wire        rx_vld;
+  wire        tx_dne;
 
-  assign uo_out = {mcht_txd, dbg_out};
+  assign uo_out = {mcht_txd, dbg_out, rx_vld, tx_dne};
 
 
   // ----------------------------------------------------------------------------
@@ -48,6 +50,7 @@ module tt_um_patrick_lin_git_mcht_trx
   wire [1:0] dbg_sel;
   wire       mcht_rxd;
 
+  //          7       6:5      4       3     2    1       0
   assign {mcht_rxd, dbg_sel, pll_en, bist, halt, dir, clk125m_ext} = ui_in;
 
 
@@ -71,30 +74,36 @@ module tt_um_patrick_lin_git_mcht_trx
 
   logic       tx_vld;
   logic [7:0] tx_msg;
-  wire        tx_dne;
 
-  wire        rx_vld;
 
+  wire        clk125m;
+  wire        pllock;
+
+`ifdef EMB_PLL
   wire        clk125m_pll;
-  wire        lock;
   wire        load_base = 1'b0;    // TBD
   wire  [7:0] base_dlys = 8'h00;   // TBD
 
   defparam u_adpll_5x_0.pFRQCY_DIVIDER = 3'd5;
   ADPLL_5X u_adpll_5x_0 (
-                         .REF_CLKI   ( clk ),    // I
-                         .GEN_CLKO   ( clk125m_pll ),    // O
-                         .LOCK       ( lock ),       // O
-                         .LOAD_BASE  ( load_base ),  // I
-                         .BASE_DLYS  ( base_dlys ),  // I 8
-                         .RST_N      ( rst_n )       // I
+                         .REF_CLKI   ( clk ),         // I
+                         .GEN_CLKO   ( clk125m_pll ), // O
+                         .LOCK       ( pllock ),      // O
+                         .LOAD_BASE  ( load_base ),   // I
+                         .BASE_DLYS  ( base_dlys ),   // I 8
+                         .RST_N      ( rst_n )        // I
                         );
 
 
 
 
-  wire        clk125m;
   assign      clk125m = pll_en? clk125m_pll :  clk125m_ext; 
+`else
+
+  assign      clk125m = clk125m_ext; 
+  assign      pllock  = 1'b0;
+
+`endif // EMB_PLL
 
 
 
@@ -114,7 +123,7 @@ module tt_um_patrick_lin_git_mcht_trx
                    
                                               .CLK_25M    ( clk ),        // I
                                               .CLK125M    ( clk125m ),    // I
-                                              .RST_N      ( rst_n )  // I
+                                              .RST_N      ( rst_n )       // I
                                              );
 
 
@@ -143,18 +152,16 @@ module tt_um_patrick_lin_git_mcht_trx
       end
     else
       case( tx_sm )
-        3'd0:    begin tx_sm <= 3'd1; tx_drv <= 1'b0; end
+        3'd0:    begin tx_sm <= 3'd1; tx_drv <= 1'b1; end
         3'd1:    begin tx_sm <= 3'd2; tx_drv <= 1'b0; end
-        3'd2:    begin tx_sm <= 3'd3; tx_drv <= 1'b1; end
-        3'd3:    begin tx_sm <= 3'd4; tx_drv <= 1'b0; end
-        3'd4:    begin tx_sm <= 3'd5; tx_drv <= 1'b0; end
-        3'd5:    if( tx_dne )
-                 begin tx_sm <= 3'd6; tx_drv <= 1'b0; end
+        3'd2:    begin tx_sm <= 3'd3; tx_drv <= 1'b0; end
+        3'd3:    if( tx_dne )
+                 begin tx_sm <= 3'd4; tx_drv <= 1'b0; end
                  else
-                 begin tx_sm <= 3'd5; tx_drv <= 1'b0; end
+                 begin tx_sm <= 3'd3; tx_drv <= 1'b0; end
 
-        3'd6:    begin tx_sm <= 3'd7; tx_drv <= 1'b0; end 
-        3'd7:    begin tx_sm <= 3'd0; tx_drv <= 1'b0; end 
+        3'd4:    begin tx_sm <= 3'd0; tx_drv <= 1'b0; end 
+      //3'd5:    begin tx_sm <= 3'd0; tx_drv <= 1'b0; end 
         default: begin tx_sm <= 3'd0; tx_drv <= 1'b0; end
       endcase
   
@@ -173,13 +180,13 @@ module tt_um_patrick_lin_git_mcht_trx
   logic bist_er;
   always_comb
     if( bist )
-      dbg_out = {6'b000_000, bist_er};
+      dbg_out = {4'b0000, bist_er};
     else
       case( dbg_sel )
-        2'd0: dbg_out = {ena, clk, rst_n, bist, clk125m, dir, halt};
-        2'd1: dbg_out = {4'b0000, mcht_txd, mcht_rxdi, mcht_rxd};
-        2'd2: dbg_out = 7'b000_0000;
-        2'd3: dbg_out = 7'b000_0000;
+        2'd0: dbg_out = {clk, rst_n, bist, dir, halt};
+        2'd1: dbg_out = {ena, pllock, mcht_txd, mcht_rxdi, mcht_rxd};
+        2'd2: dbg_out = {clk125m, 4'b0000};
+        2'd3: dbg_out = 5'b0_0000;
       endcase
 
    //   3'd4: dbg_out = 7'b000_0000;
