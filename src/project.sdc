@@ -7,12 +7,15 @@ set cap_load   [ expr $::env(OUTPUT_CAP_LOAD) / 1000.0 ] ;# fF -> pF
 # Remove clock net from inputs
   set idx [lsearch [all_inputs]       [get_port "clk"] ]
   set all_inputs_wo_clk [lreplace       [all_inputs] $idx $idx]
+  puts "1'st list $all_inputs_wo_clk"
 
   set idx [lsearch $all_inputs_wo_clk [get_port "ui_in\[0\]"] ]
   set all_inputs_wo_clk [lreplace $all_inputs_wo_clk $idx $idx]
+  puts "2'nd list $all_inputs_wo_clk"
 
   set idx [lsearch $all_inputs_wo_clk [get_port "rst_n"] ]
   set all_inputs_wo_clk [lreplace $all_inputs_wo_clk $idx $idx]
+  puts "3'rd list $all_inputs_wo_clk"
 
 
 # set all_inputs_wo_clk [lreplace [all_inputs] $idx_c0 $idx_c0]
