@@ -48,8 +48,11 @@ set ::env(DECAP_CELL) "\
 set ::env(RUN_CTS) 1
 # period is in ns, so 20ns == 50mHz
 # change to 25MHz
-set ::env(CLOCK_PERIOD) "40"
-set ::env(CLOCK_PORT) {clk}
+# set ::env(CLOCK_PERIOD) "40"
+# set ::env(CLOCK_PORT) {clk}
+  set ::env(CLOCK_PORT) {ui_in\[0\]}
+  set ::env(CLOCK_PERIOD) "8"
+  set ::env(BASE_SDC_FILE) "$::env(DESIGN_DIR)/project.sdc"
 
 # hold/slack margin
 # set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.8 
