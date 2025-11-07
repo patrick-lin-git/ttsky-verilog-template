@@ -5,6 +5,7 @@ set_max_fanout $::env(MAX_FANOUT_CONSTRAINT) [ current_design ]
 set cap_load   [ expr $::env(OUTPUT_CAP_LOAD) / 1000.0 ] ;# fF -> pF
 
 # Remove clock net from inputs
+# all input port name are changed in netlist, cannot remove clock port from the list
   set idx [lsearch [all_inputs]       [get_port "clk"] ]
   set all_inputs_wo_clk [lreplace       [all_inputs] $idx $idx]
   puts "1'st list $all_inputs_wo_clk"
@@ -47,8 +48,10 @@ set_clock_transition  $::env(SYNTH_CLOCK_TRANSITION)  [ get_clocks fpga_clk ]
 set_clock_groups -asynchronous -group { rp2040_clk } -group { fpga_clk }
 
 # Miscellanea
-  set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL) -pin $::env(SYNTH_DRIVING_CELL_PIN) $all_inputs_wo_clk
-# set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL)                                     $all_inputs_wo_clk
+# set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL) -pin $::env(SYNTH_DRIVING_CELL_PIN) $all_inputs_wo_clk
+# set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL) -pin $::env(SYNTH_DRIVING_CELL_PIN) [all_inputs]
+# SYNTH_DRIVING_CELL_PIN cannot be set in config.json
+  set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL) -pin Y                              $all_inputs_wo_clk
 
 set_load  $cap_load [ all_outputs ]
 set_timing_derate -early [ expr {1-$::env(SYNTH_TIMING_DERATE)} ]
